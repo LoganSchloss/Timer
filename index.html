@@ -71,7 +71,8 @@
                 return;
             }
             try {
-                const port = await navigator.serial.requestPort({ filters: [] });
+                const port = await
+                navigator.serial.requestPort({ filters: [] });
                 status.innerText = "Stato USB: CONNESSO ✅";
                 usbBtn.style.display = "none";
 
