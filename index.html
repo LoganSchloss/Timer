@@ -71,8 +71,7 @@
                 return;
             }
             try {
-                const port = await navigator.serial.requestPort();
-                await port.open({ baudRate: 115200 });
+                const port = await navigator.serial.requestPort({ filters: [] });
                 status.innerText = "Stato USB: CONNESSO ✅";
                 usbBtn.style.display = "none";
 
