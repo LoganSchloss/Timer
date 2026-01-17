@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Timer Pro Decimi</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
         .container { text-align: center; background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 85%; }
         #display { font-size: 3.5rem; font-weight: bold; margin-bottom: 2rem; color: #333; font-variant-numeric: tabular-nums; }
         .buttons button { font-size: 1.1rem; padding: 15px; margin: 5px; cursor: pointer; border: none; border-radius: 10px; color: white; font-weight: bold; width: 100%; max-width: 100px; }
@@ -13,11 +13,12 @@
         #stopBtn { background-color: #dc3545; }
         #resetBtn { background-color: #6c757d; }
         button:disabled { opacity: 0.4; }
+        small { font-size: 2rem; color: #666; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Timer Decimi</h1>
+        <h1>Timer</h1>
         <div id="display">00:00:00.<small>0</small></div>
         <div class="buttons">
             <button id="startBtn">START</button>
@@ -35,7 +36,6 @@
             let hh = Math.floor(time / 3600000).toString().padStart(2, "0");
             let mm = Math.floor((time % 3600000) / 60000).toString().padStart(2, "0");
             let ss = Math.floor((time % 60000) / 1000).toString().padStart(2, "0");
-            // Calcolo dei decimi: prendiamo i millisecondi rimanenti e dividiamo per 100
             let decimi = Math.floor((time % 1000) / 100);
             return `${hh}:${mm}:${ss}.<small>${decimi}</small>`;
         }
@@ -45,7 +45,7 @@
             timerInterval = setInterval(() => {
                 elapsedTime = Date.now() - startTime;
                 display.innerHTML = timeToString(elapsedTime);
-            }, 100); // Aggiorna ogni 100ms (decimi)
+            }, 100); // Aggiorna ogni 100ms per i decimi
             startBtn.disabled = true; stopBtn.disabled = false;
         }
 
