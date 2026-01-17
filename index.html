@@ -3,37 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timer USB OTG</title>
-    <link rel="manifest" href="manifest.json">
+    <title>Timer Bluetooth</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; flex-direction: column; }
-        .container { text-align: center; background: white; padding: 2rem; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 85%; max-width: 400px; }
-        #display { font-size: 3.5rem; font-weight: bold; margin-bottom: 2rem; color: #333; font-variant-numeric: tabular-nums; }
-        .buttons button { font-size: 1rem; padding: 12px; margin: 5px; cursor: pointer; border: none; border-radius: 10px; color: white; font-weight: bold; width: 100px; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
+        .container { text-align: center; background: white; padding: 2.5rem; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 90%; max-width: 400px; }
+        #display { font-size: 3.5rem; font-weight: bold; margin-bottom: 2.5rem; color: #333; font-variant-numeric: tabular-nums; }
+        .buttons { display: flex; gap: 10px; }
+        button { font-size: 1rem; padding: 15px; cursor: pointer; border: none; border-radius: 12px; color: white; font-weight: bold; flex: 1; }
         #startBtn { background-color: #28a745; }
         #stopBtn { background-color: #dc3545; }
-        #usbBtn { background-color: #007bff; width: 100%; margin-top: 20px; padding: 15px; border-radius: 12px; }
-        small { font-size: 2rem; color: #888; }
-        #status { margin-top: 10px; font-size: 0.8rem; color: #666; }
+        #resetBtn { background-color: #6c757d; }
+        button:disabled { opacity: 0.3; }
+        small { font-size: 2.2rem; color: #888; }
+        .status-bt { margin-top: 15px; font-size: 0.8rem; color: #28a745; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Cronometro OTG</h1>
+        <h1>Cronometro BT</h1>
         <div id="display">00:00:00.<small>00</small></div>
         <div class="buttons">
             <button id="startBtn">START</button>
             <button id="stopBtn" disabled>STOP</button>
+            <button id="resetBtn">RESET</button>
         </div>
-        <button id="usbBtn">🔌 COLLEGA USB ESP32</button>
-        <div id="status">Stato USB: Non connesso</div>
+        <div class="status-bt">Pronto per Bluetooth (Tasto 'S')</div>
     </div>
 
     <script>
         let startTime, elapsedTime = 0, timerInterval;
         const display = document.getElementById('display');
-        const usbBtn = document.getElementById('usbBtn');
-        const status = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
 
         function timeToString(time) {
             let hh = Math.floor(time / 3600000).toString().padStart(2, "0");
@@ -50,50 +51,34 @@
                 elapsedTime = Date.now() - startTime;
                 display.innerHTML = timeToString(elapsedTime);
             }, 10);
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('stopBtn').disabled = false;
+            startBtn.disabled = true; stopBtn.disabled = false;
         }
 
         function stop() {
             clearInterval(timerInterval);
             timerInterval = null;
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('stopBtn').disabled = true;
+            startBtn.disabled = false; stopBtn.disabled = true;
         }
 
-        document.getElementById('startBtn').onclick = start;
-        document.getElementById('stopBtn').onclick = stop;
+        function reset() {
+            stop();
+            elapsedTime = 0;
+            display.innerHTML = "00:00:00.<small>00</small>";
+        }
 
-        // LOGICA PER RICEVERE COMANDI DALL'ESP32 VIA USB
-        usbBtn.addEventListener('click', async () => {
-            if (!("serial" in navigator)) {
-                alert("Il tuo browser non supporta la connessione USB. Usa Chrome su Android.");
-                return;
+        startBtn.onclick = start;
+        stopBtn.onclick = stop;
+        document.getElementById('resetBtn').onclick = reset;
+
+        // ASCOLTO TASTIERA (Bluetooth HID)
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 's' || event.key === 'S') {
+                if (!timerInterval) start(); else stop();
             }
-            try {
-                const port = await
-                navigator.serial.requestPort({ filters: [] });
-                status.innerText = "Stato USB: CONNESSO ✅";
-                usbBtn.style.display = "none";
-
-                const reader = port.readable.getReader();
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
-                    const command = new TextDecoder().decode(value);
-                    // Se riceve 'S' dall'ESP32, avvia o ferma
-                    if (command.includes('S')) {
-                        if (!timerInterval) start(); else stop();
-                    }
-                }
-            } catch (error) {
-                status.innerText = "Errore: " + error;
+            if (event.key === 'r' || event.key === 'R') {
+                reset();
             }
         });
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
-        }
     </script>
 </body>
 </html>
