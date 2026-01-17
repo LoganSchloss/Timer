@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timer Pro Centesimi</title>
+    <title>Timer Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#28a745">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
         .container { text-align: center; background: white; padding: 2.5rem; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 90%; max-width: 400px; }
-        h1 { color: #555; margin-bottom: 1rem; font-size: 1.5rem; }
-        #display { font-size: 3.5rem; font-weight: bold; margin-bottom: 2.5rem; color: #333; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
-        .buttons { display: flex; gap: 10px; justify-content: center; }
-        .buttons button { font-size: 1rem; padding: 15px; cursor: pointer; border: none; border-radius: 12px; color: white; font-weight: bold; flex: 1; transition: transform 0.1s; }
-        .buttons button:active { transform: scale(0.95); }
+        #display { font-size: 3.5rem; font-weight: bold; margin-bottom: 2.5rem; color: #333; font-variant-numeric: tabular-nums; }
+        .buttons { display: flex; gap: 10px; }
+        button { font-size: 1rem; padding: 15px; cursor: pointer; border: none; border-radius: 12px; color: white; font-weight: bold; flex: 1; }
         #startBtn { background-color: #28a745; }
         #stopBtn { background-color: #dc3545; }
         #resetBtn { background-color: #6c757d; }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
-        small { font-size: 2.2rem; color: #888; margin-left: 2px; }
+        button:disabled { opacity: 0.3; }
+        small { font-size: 2.2rem; color: #888; }
     </style>
 </head>
 <body>
@@ -32,14 +33,11 @@
     <script>
         let startTime, elapsedTime = 0, timerInterval;
         const display = document.getElementById('display');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
         
         function timeToString(time) {
             let hh = Math.floor(time / 3600000).toString().padStart(2, "0");
             let mm = Math.floor((time % 3600000) / 60000).toString().padStart(2, "0");
             let ss = Math.floor((time % 60000) / 1000).toString().padStart(2, "0");
-            // Calcolo centesimi: millisecondi diviso 10, limitato a 2 cifre
             let centesimi = Math.floor((time % 1000) / 10).toString().padStart(2, "0");
             return `${hh}:${mm}:${ss}.<small>${centesimi}</small>`;
         }
@@ -49,28 +47,22 @@
             timerInterval = setInterval(() => {
                 elapsedTime = Date.now() - startTime;
                 display.innerHTML = timeToString(elapsedTime);
-            }, 10); // Aggiorna ogni 10ms (necessario per i centesimi)
-            startBtn.disabled = true; 
-            stopBtn.disabled = false;
+            }, 10);
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
         }
 
-        function stop() { 
-            clearInterval(timerInterval); 
-            startBtn.disabled = false; 
-            stopBtn.disabled = true; 
-        }
+        function stop() { clearInterval(timerInterval); document.getElementById('startBtn').disabled = false; document.getElementById('stopBtn').disabled = true; }
+        function reset() { clearInterval(timerInterval); elapsedTime = 0; display.innerHTML = "00:00:00.<small>00</small>"; stop(); }
 
-        function reset() {
-            clearInterval(timerInterval);
-            elapsedTime = 0;
-            display.innerHTML = "00:00:00.<small>00</small>";
-            startBtn.disabled = false; 
-            stopBtn.disabled = true;
-        }
+        document.getElementById('startBtn').onclick = start;
+        document.getElementById('stopBtn').onclick = stop;
+        document.getElementById('resetBtn').onclick = reset;
 
-        startBtn.onclick = start;
-        stopBtn.onclick = stop;
-        resetBtn.onclick = reset;
+        // ATTIVAZIONE OFFLINE
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
     </script>
 </body>
 </html>
